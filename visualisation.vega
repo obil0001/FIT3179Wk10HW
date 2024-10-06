@@ -1,0 +1,164 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Victorian Suburbs Ranked by Tax Level and Net Income",
+  "params": [
+    {
+      "name": "zoom_level",
+      "value": 30000,
+      "bind": {
+        "input": "range",
+        "min": 200,
+        "max": 60000,
+        "step": 100,
+        "name": "Zoom: "
+      }
+    },
+    {
+      "name": "center_to",
+      "value": [145, -37.6],
+      "bind": {
+        "input": "select",
+        "options": [
+          [145, -37.3],
+          [144.3, -37.97],
+          [144.9, -36.07],
+          [147.1, -37.45]
+        ],
+        "labels": ["Melbourne CBD", "Geelong", "Bendigo", "Sale"],
+        "name": "Map Centre: "
+      }
+    },
+    {
+      "name": "tax_filter",
+      "value": "All",
+      "bind": {
+        "input": "select",
+        "options": ["All", "Low", "Medium", "High"],
+        "name": "Tax Level Filter: "
+      }
+    }
+  ],
+  "vconcat": [
+    {
+      "layer": [
+        {
+          "projection": {
+            "type": "equirectangular",
+            "center": { "expr": "center_to" },
+            "scale": { "expr": "zoom_level" }
+          },
+          "data": {
+            "url": "https://raw.githubusercontent.com/obil0001/fit3179/refs/heads/main/output.json",
+            "format": { "type": "topojson", "feature": "POSTCODE_POLYGON" }
+          },
+          "mark": {
+            "type": "geoshape",
+            "fill": "darkgrey",
+            "opacity": 1
+          }
+        },
+        {
+          "width": 700,
+          "height": 400,
+          "title": "Suburbs Scored on Average Net Tax",
+          "projection": {
+            "type": "equirectangular",
+            "center": { "expr": "center_to" },
+            "scale": { "expr": "zoom_level" }
+          },
+          "data": {
+            "url": "https://raw.githubusercontent.com/obil0001/fit3179/refs/heads/main/output.json",
+            "format": { "type": "topojson", "feature": "POSTCODE_POLYGON" }
+          },
+          "transform": [
+            {
+              "lookup": "properties.POSTCODE",
+              "from": {
+                "data": {
+                  "url": "https://raw.githubusercontent.com/obil0001/FIT3179A2/refs/heads/main/suburbnmediantax%20-%20Copy.csv"
+                },
+                "key": "Postcode",
+                "fields": ["Average Net Tax "]
+              }
+            },
+            {
+              "filter": "tax_filter === 'All' || (tax_filter === 'Low' && datum['Average Net Tax '] < 0.25) || (tax_filter === 'Medium' && datum['Average Net Tax '] >= 0.25 && datum['Average Net Tax '] < 0.5) || (tax_filter === 'High' && datum['Average Net Tax '] >= 0.5)"
+            }
+          ],
+          "mark": { "type": "geoshape" },
+          "encoding": {
+            "color": {
+              "field": "Average Net Tax ",
+              "type": "quantitative",
+              "scale": { "type": "linear" },
+              "legend": { "title": "Tax Score" }
+            },
+            "tooltip": [
+              { "field": "properties.POSTCODE", "type": "nominal", "title": "Postcode" },
+              { "field": "Average Net Tax ", "type": "quantitative", "title": "Tax Score (0-1)" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "layer": [
+        {
+          "projection": {
+            "type": "equirectangular",
+            "center": { "expr": "center_to" },
+            "scale": { "expr": "zoom_level" }
+          },
+          "data": {
+            "url": "https://raw.githubusercontent.com/obil0001/fit3179/refs/heads/main/output.json",
+            "format": { "type": "topojson", "feature": "POSTCODE_POLYGON" }
+          },
+          "mark": {
+            "type": "geoshape",
+            "fill": "darkgrey",
+            "opacity": 1
+          }
+        },
+        {
+          "width": 700,
+          "height": 400,
+          "title": "Suburbs Scored on Net Income",
+          "projection": {
+            "type": "equirectangular",
+            "center": { "expr": "center_to" },
+            "scale": { "expr": "zoom_level" }
+          },
+          "data": {
+            "url": "https://raw.githubusercontent.com/obil0001/fit3179/refs/heads/main/output.json",
+            "format": { "type": "topojson", "feature": "POSTCODE_POLYGON" }
+          },
+          "transform": [
+            {
+              "lookup": "properties.POSTCODE",
+              "from": {
+                "data": {
+                  "url": "https://raw.githubusercontent.com/obil0001/FIT3179A2/refs/heads/main/suburbnmediantax%20-%20Copy.csv"
+                },
+                "key": "Postcode",
+                "fields": ["Average Salary"]
+              }
+            }
+          ],
+          "mark": { "type": "geoshape" },
+          "encoding": {
+            "color": {
+              "field": "Average Salary",
+              "type": "quantitative",
+              "scale": { "type": "linear" },
+              "legend": { "title": "Salary Score" }
+            },
+            "tooltip": [
+              { "field": "properties.POSTCODE", "type": "nominal", "title": "Postcode" },
+              { "field": "Average Salary", "type": "quantitative", "title": "Salary Score (0-1)" }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
